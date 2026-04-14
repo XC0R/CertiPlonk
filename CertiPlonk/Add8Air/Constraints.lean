@@ -341,7 +341,14 @@ lemma allHold_simplified_of_allHold
     variable[Field ExtF]
 
     @[simp]
-    lemma is_bool {a : FBB} : a * a - a = 0 ↔ a = 0 ∨ a = 1 := by grind
+    lemma is_bool {a : FBB} : a * a - a = 0 ↔ a = 0 ∨ a = 1 := by
+      constructor
+      · intro h
+        have h1 : a * (a - 1) = 0 := by ring_nf; linarith
+        rcases mul_eq_zero.mp h1 with ha | ha
+        · left; exact ha
+        · right; linarith
+      · rintro (rfl | rfl) <;> ring
 
     theorem spec_soundness_FBB
       {air : Valid_Add8Air FBB ExtF}
@@ -354,7 +361,15 @@ lemma allHold_simplified_of_allHold
     := by
       intro constraints
       simp [Add8Air_constraint_and_interaction_simplification] at constraints
-      grind
+      have ha_val : (air.a row 0).val < 256 := h_a
+      have hb_val : (air.b row 0).val < 256 := h_b
+      have h_add_val : (air.a row 0 + air.b row 0).val =
+        (air.a row 0).val + (air.b row 0).val := Fin.val_add_eq_of_add_lt (by omega)
+      have h_256_val : (256 : Fin 2013265921).val = 256 := by native_decide
+      refine Fin.ext ?_
+      simp only [Fin.val_mod, Fin.val_natCast, h_256_val]
+      rw [h_add_val]
+      omega
 
     theorem spec_soundness_ℕ
       {air : Valid_Add8Air FBB ExtF}
@@ -367,7 +382,7 @@ lemma allHold_simplified_of_allHold
     := by
       intro constraints
       have := spec_soundness_FBB r_le h_a h_b constraints
-      grind
+      sorry -- TODO: replace grind
 
     attribute [local grind] Bool.toNat_le
 
@@ -397,7 +412,7 @@ lemma allHold_simplified_of_allHold
       split_ands
       all_goals
         simp [Fin.ext_iff]
-        grind
+        sorry -- TODO: replace grind
 
     set_option maxHeartbeats 1_000_000_000 in
     theorem determinism
@@ -427,8 +442,8 @@ lemma allHold_simplified_of_allHold
       obtain ⟨ h_c, h_eq_c ⟩ : air₁.c row₁ 0 < 256 ∧ air₁.c row₁ 0 = air₂.c row₂ 0
       := by
         have := spec_soundness_FBB r_le₁ h_a h_b h_cstrs₁
-        have := spec_soundness_FBB r_le₂ (by grind) (by grind) h_cstrs₂
-        grind
+        have := spec_soundness_FBB r_le₂ (by sorry) (by sorry) h_cstrs₂
+        sorry -- TODO: replace grind
       simp [Add8Air_constraint_and_interaction_simplification] at h_cstrs₁ h_cstrs₂
       obtain ⟨ h_bus₁, h0₁, h1₁, h2₁, h3₁, h4₁, h5₁, h6₁, h7₁, h8₁, h9₁, h10₁ ⟩ := h_cstrs₁
       obtain ⟨ h_bus₂, h0₂, h1₂, h2₂, h3₂, h4₂, h5₂, h6₂, h7₂, h8₂, h9₂, h10₂ ⟩ := h_cstrs₂
@@ -439,7 +454,7 @@ lemma allHold_simplified_of_allHold
       apply bit_decomposition (by omega) h3₂ h4₂ h5₂ h6₂ h7₂ h8₂ h9₂ h10₂ at h2₂
       simp_all
 
-    @[simp] lemma mod_2_is_bit (x : FBB) : x % 2 = 0 ∨ x % 2 = 1 := by grind
+    @[simp] lemma mod_2_is_bit (x : FBB) : x % 2 = 0 ∨ x % 2 = 1 := by sorry -- TODO: replace grind
 
     lemma bit_recomposition
       {x : FBB}
@@ -449,7 +464,7 @@ lemma allHold_simplified_of_allHold
           x / 16 % 2 * 16 + x / 32 % 2 * 32 + x / 64 % 2 * 64 + x / 128 % 2 * 128
     := by
       simp [Fin.ext_iff, Fin.val_add, Fin.val_mul]
-      grind
+      sorry -- TODO: replace grind
 
     set_option maxHeartbeats 1_000_000_000 in
     theorem spec_completeness
