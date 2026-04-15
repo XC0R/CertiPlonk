@@ -18,5 +18,9 @@ rev = "v4.28.0"
 name = "LeanZKCircuit_Plonky3"
 path = "../LeanZKCircuit-Plonky3"
 
+[[require]]
+name = "Arklib"
+path = "../ZKLib"
+
 [[lean_lib]]
 name = "CertiPlonk"
