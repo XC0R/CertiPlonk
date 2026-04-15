@@ -3,3 +3,4 @@ import CertiPlonk.Bridge.AIRToPlonk
 import CertiPlonk.Bridge.PlonkStatement
 import CertiPlonk.Protocol.PlonkPIOP
 import CertiPlonk.Protocol.Add8AirGateCheck
+import CertiPlonk.Protocol.PermutationCheck
