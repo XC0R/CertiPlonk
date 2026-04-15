@@ -96,13 +96,26 @@ def gateCheckRelOut :
 
 variable {σ : Type} (init : ProbComp σ) (impl : QueryImpl []ₒ (StateT σ ProbComp))
 
--- Same blocker as ArkLib's SendWitness.reduction_completeness: pushing simulateQ through
--- the 1-round protocol run requires ~100 lines of monadic plumbing (see RandomQuery for
--- the only working example). The definitions above type-check and are correct by construction.
+-- Same blocker as ArkLib's own SendWitness.reduction_completeness: after unfolding
+-- Reduction.run_of_prover_first and pushing simulateQ through binds/pure, the remaining
+-- goal requires proving `Pr[event | init >>= StateT.run' (pure (some result))] = 1`.
+-- The OptionT/StateT/ProbComp stack doesn't reduce without additional lemmas about
+-- `probEvent` on deterministic OptionT computations parameterized by `init : ProbComp σ`.
+set_option maxHeartbeats 1600000 in
 open Classical in
 theorem gateCheck_perfectCompleteness :
     (gateCheckReduction (𝓡 := 𝓡) (numWires := numWires) (numGates := numGates)).perfectCompleteness
       init impl gateCheckRelIn gateCheckRelOut := by
+  rw [Reduction.perfectCompleteness_eq_prob_one]
+  intro cs w hIn
+  simp only [gateCheckRelIn, Set.mem_setOf_eq] at hIn
+  rw [Reduction.run_of_prover_first]
+  simp only [gateCheckReduction, gateCheckProver, gateCheckVerifier, Verifier.run]
+  simp only [guard, if_pos hIn]
+  erw [simulateQ_bind]
+  simp only [simulateQ_pure, pure_bind]
+  erw [simulateQ_pure]
+  simp only [pure_bind]
   sorry
 
 end GateCheck
