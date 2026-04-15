@@ -1,4 +1,4 @@
-import ArkLib.ProofSystem.ConstraintSystem.Plonk
+import CertiPlonk.Bridge.AIRToPlonk
 import CertiPlonk.Add8Air.Constraints
 import CertiPlonk.Fundamentals.BabyBear
 
@@ -20,12 +20,6 @@ variable [Field ExtF]
     14..20 = cᵢ * 2^i for i=1..7
     21..27 = partial sums
 -/
-
-private def Gate.scalarMul (k : FBB) (a c : Fin 28) : Gate FBB 28 :=
-  { qL := k, qR := 0, qO := -1, qM := 0, qC := 0, a := a, b := a, c := c }
-
-private def Gate.wireEq (a c : Fin 28) : Gate FBB 28 :=
-  { qL := 1, qR := 0, qO := -1, qM := 0, qC := 0, a := a, b := a, c := c }
 
 @[reducible] def add8airCS : ConstraintSystem FBB 28 27
   | ⟨0, _⟩ => Gate.scalarMul 256 ⟨3, by omega⟩ ⟨12, by omega⟩
