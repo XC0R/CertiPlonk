@@ -22,7 +22,7 @@ rev = "02a993a8c43ffd60206acf43730d86eb05ee909d"
 [[require]]
 name = "Arklib"
 git = "https://github.com/XC0R/ArkLib"
-rev = "bed18d9447d3877b16116e1078e757be0a252fb1"
+rev = "b98d03e2e13e7efc28760dbdb4cf8aca6ce999b0"
 
 [[lean_lib]]
 name = "CertiPlonk"
