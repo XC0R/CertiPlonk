@@ -344,12 +344,14 @@ lemma allHold_simplified_of_allHold
     lemma is_bool {a : FBB} : a * a - a = 0 ↔ a = 0 ∨ a = 1 := by
       constructor
       · intro h
-        have h1 : a * (a - 1) = 0 := by ring_nf; linarith
-        rcases mul_eq_zero.mp h1 with ha | ha
+        have h1 : a * a = a := sub_eq_zero.mp h
+        have h2 : a * (a - 1) = 0 := by rw [mul_sub, mul_one, h1, sub_self]
+        rcases mul_eq_zero.mp h2 with ha | ha
         · left; exact ha
-        · right; linarith
+        · right; exact sub_eq_zero.mp ha
       · rintro (rfl | rfl) <;> ring
 
+    set_option maxHeartbeats 2000000 in
     theorem spec_soundness_FBB
       {air : Valid_Add8Air FBB ExtF}
       {row}
@@ -361,14 +363,82 @@ lemma allHold_simplified_of_allHold
     := by
       intro constraints
       simp [Add8Air_constraint_and_interaction_simplification] at constraints
-      have ha_val : (air.a row 0).val < 256 := h_a
-      have hb_val : (air.b row 0).val < 256 := h_b
-      have h_add_val : (air.a row 0 + air.b row 0).val =
-        (air.a row 0).val + (air.b row 0).val := Fin.val_add_eq_of_add_lt (by omega)
-      have h_256_val : (256 : Fin 2013265921).val = 256 := by native_decide
+      obtain ⟨_, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10⟩ := constraints
+      rw [sub_eq_zero] at h0 h2
+      -- Bit value bounds
+      have hv0 : (air.c₀ row 0).val ≤ 1 := by rcases h3 with h | h <;> simp [h]
+      have hv1 : (air.c₁ row 0).val ≤ 1 := by rcases h4 with h | h <;> simp [h]
+      have hv2 : (air.c₂ row 0).val ≤ 1 := by rcases h5 with h | h <;> simp [h]
+      have hv3 : (air.c₃ row 0).val ≤ 1 := by rcases h6 with h | h <;> simp [h]
+      have hv4 : (air.c₄ row 0).val ≤ 1 := by rcases h7 with h | h <;> simp [h]
+      have hv5 : (air.c₅ row 0).val ≤ 1 := by rcases h8 with h | h <;> simp [h]
+      have hv6 : (air.c₆ row 0).val ≤ 1 := by rcases h9 with h | h <;> simp [h]
+      have hv7 : (air.c₇ row 0).val ≤ 1 := by rcases h10 with h | h <;> simp [h]
+      have hvr : (air.r row 0).val ≤ 1 := by rcases h1 with h | h <;> simp [h]
+      -- Progressive Fin→Nat lifting for h2: c = c₀ + c₁*2 + ... + c₇*128
+      have m1 : (air.c₁ row 0 * 2).val = (air.c₁ row 0).val * 2 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have m2 : (air.c₂ row 0 * 4).val = (air.c₂ row 0).val * 4 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have m3 : (air.c₃ row 0 * 8).val = (air.c₃ row 0).val * 8 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have m4 : (air.c₄ row 0 * 16).val = (air.c₄ row 0).val * 16 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have m5 : (air.c₅ row 0 * 32).val = (air.c₅ row 0).val * 32 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have m6 : (air.c₆ row 0 * 64).val = (air.c₆ row 0).val * 64 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have m7 : (air.c₇ row 0 * 128).val = (air.c₇ row 0).val * 128 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      -- Progressive sum lifting
+      have s1 : (air.c₀ row 0 + air.c₁ row 0 * 2).val =
+          (air.c₀ row 0).val + (air.c₁ row 0).val * 2 := by
+        rw [Fin.val_add_eq_of_add_lt (by rw [m1]; omega), m1]
+      have s2 : (air.c₀ row 0 + air.c₁ row 0 * 2 + air.c₂ row 0 * 4).val =
+          (air.c₀ row 0).val + (air.c₁ row 0).val * 2 + (air.c₂ row 0).val * 4 := by
+        rw [Fin.val_add_eq_of_add_lt (by rw [s1, m2]; omega), s1, m2]
+      have s3 : (air.c₀ row 0 + air.c₁ row 0 * 2 + air.c₂ row 0 * 4 + air.c₃ row 0 * 8).val =
+          (air.c₀ row 0).val + (air.c₁ row 0).val * 2 + (air.c₂ row 0).val * 4 +
+          (air.c₃ row 0).val * 8 := by
+        rw [Fin.val_add_eq_of_add_lt (by rw [s2, m3]; omega), s2, m3]
+      have s4 : (air.c₀ row 0 + air.c₁ row 0 * 2 + air.c₂ row 0 * 4 + air.c₃ row 0 * 8 +
+          air.c₄ row 0 * 16).val =
+          (air.c₀ row 0).val + (air.c₁ row 0).val * 2 + (air.c₂ row 0).val * 4 +
+          (air.c₃ row 0).val * 8 + (air.c₄ row 0).val * 16 := by
+        rw [Fin.val_add_eq_of_add_lt (by rw [s3, m4]; omega), s3, m4]
+      have s5 : (air.c₀ row 0 + air.c₁ row 0 * 2 + air.c₂ row 0 * 4 + air.c₃ row 0 * 8 +
+          air.c₄ row 0 * 16 + air.c₅ row 0 * 32).val =
+          (air.c₀ row 0).val + (air.c₁ row 0).val * 2 + (air.c₂ row 0).val * 4 +
+          (air.c₃ row 0).val * 8 + (air.c₄ row 0).val * 16 + (air.c₅ row 0).val * 32 := by
+        rw [Fin.val_add_eq_of_add_lt (by rw [s4, m5]; omega), s4, m5]
+      have s6 : (air.c₀ row 0 + air.c₁ row 0 * 2 + air.c₂ row 0 * 4 + air.c₃ row 0 * 8 +
+          air.c₄ row 0 * 16 + air.c₅ row 0 * 32 + air.c₆ row 0 * 64).val =
+          (air.c₀ row 0).val + (air.c₁ row 0).val * 2 + (air.c₂ row 0).val * 4 +
+          (air.c₃ row 0).val * 8 + (air.c₄ row 0).val * 16 + (air.c₅ row 0).val * 32 +
+          (air.c₆ row 0).val * 64 := by
+        rw [Fin.val_add_eq_of_add_lt (by rw [s5, m6]; omega), s5, m6]
+      have h2v : (air.c row 0).val = (air.c₀ row 0).val + (air.c₁ row 0).val * 2 +
+          (air.c₂ row 0).val * 4 + (air.c₃ row 0).val * 8 + (air.c₄ row 0).val * 16 +
+          (air.c₅ row 0).val * 32 + (air.c₆ row 0).val * 64 +
+          (air.c₇ row 0).val * 128 := by
+        have := congr_arg Fin.val h2
+        rw [Fin.val_add_eq_of_add_lt (by rw [s6, m7]; omega), s6, m7] at this
+        exact this
+      have hc : (air.c row 0).val < 256 := by omega
+      -- Lift h0: a + b = r * 256 + c
+      have mr : (air.r row 0 * 256).val = (air.r row 0).val * 256 := by
+        rw [Fin.val_mul, Nat.mod_eq_of_lt (by omega)]; omega
+      have h0v : (air.a row 0).val + (air.b row 0).val =
+          (air.r row 0).val * 256 + (air.c row 0).val := by
+        have := congr_arg Fin.val h0
+        rw [Fin.val_add_eq_of_add_lt (by omega : (air.a row 0).val + (air.b row 0).val < _),
+            Fin.val_add_eq_of_add_lt (by rw [mr]; omega), mr] at this
+        exact this
+      -- Goal: c = (a + b) % 256
       refine Fin.ext ?_
-      simp only [Fin.val_mod, Fin.val_natCast, h_256_val]
-      rw [h_add_val]
+      rw [Fin.val_mod, Fin.val_add_eq_of_add_lt (by omega)]
+      have h256 : (256 : FBB).val = 256 := rfl
+      rw [h256]
       omega
 
     theorem spec_soundness_ℕ
@@ -381,12 +451,13 @@ lemma allHold_simplified_of_allHold
       allHold_simplified air row r_le → (air.c row 0).val = ((air.a row 0).val + (air.b row 0).val) % 256
     := by
       intro constraints
-      have := spec_soundness_FBB r_le h_a h_b constraints
-      sorry -- TODO: replace grind
+      have h := spec_soundness_FBB r_le h_a h_b constraints
+      have hv := congr_arg Fin.val h
+      simp only [Fin.val_mod, Fin.val_add] at hv
+      norm_num at hv
+      omega
 
-    attribute [local grind] Bool.toNat_le
-
-    set_option maxHeartbeats 1_000_000_000 in
+    set_option maxHeartbeats 1600000 in
     lemma bit_decomposition
       {x x₀ x₁ x₂ x₃ x₄ x₅ x₆ x₇ : FBB}
       (h_x : x < 256)
@@ -409,12 +480,29 @@ lemma allHold_simplified_of_allHold
       x₆ = (x / 64) % 2 ∧
       x₇ = (x / 128) % 2
     := by
+      -- Get .val bounds for all bits
+      have bv0 : x₀.val ≤ 1 := by rcases h0 with h | h <;> simp [h]
+      have bv1 : x₁.val ≤ 1 := by rcases h1 with h | h <;> simp [h]
+      have bv2 : x₂.val ≤ 1 := by rcases h2 with h | h <;> simp [h]
+      have bv3 : x₃.val ≤ 1 := by rcases h3 with h | h <;> simp [h]
+      have bv4 : x₄.val ≤ 1 := by rcases h4 with h | h <;> simp [h]
+      have bv5 : x₅.val ≤ 1 := by rcases h5 with h | h <;> simp [h]
+      have bv6 : x₆.val ≤ 1 := by rcases h6 with h | h <;> simp [h]
+      have bv7 : x₇.val ≤ 1 := by rcases h7 with h | h <;> simp [h]
+      -- Lift h_dcmp to .val (pure Nat)
+      have hdv := congr_arg Fin.val h_dcmp
+      simp only [Fin.val_add, Fin.val_mul] at hdv
+      norm_num at hdv
+      rw [Nat.mod_eq_of_lt (by omega)] at hdv
+      -- All goals: Fin.ext + simp to .val + norm_num + omega
       split_ands
       all_goals
-        simp [Fin.ext_iff]
-        sorry -- TODO: replace grind
+        refine Fin.ext ?_
+        simp only [Fin.val_mod, Fin.div_val]
+        norm_num
+        omega
 
-    set_option maxHeartbeats 1_000_000_000 in
+    set_option maxHeartbeats 1600000 in
     theorem determinism
       {air₁ : Valid_Add8Air FBB ExtF}
       {air₂ : Valid_Add8Air FBB ExtF}
@@ -441,9 +529,15 @@ lemma allHold_simplified_of_allHold
     := by
       obtain ⟨ h_c, h_eq_c ⟩ : air₁.c row₁ 0 < 256 ∧ air₁.c row₁ 0 = air₂.c row₂ 0
       := by
-        have := spec_soundness_FBB r_le₁ h_a h_b h_cstrs₁
-        have := spec_soundness_FBB r_le₂ (by sorry) (by sorry) h_cstrs₂
-        sorry -- TODO: replace grind
+        have hs1 := spec_soundness_FBB r_le₁ h_a h_b h_cstrs₁
+        have hs2 := spec_soundness_FBB r_le₂ (h_eq_a ▸ h_a) (h_eq_b ▸ h_b) h_cstrs₂
+        refine ⟨?_, ?_⟩
+        · rw [hs1]
+          show ((air₁.a row₁ 0 + air₁.b row₁ 0) % (256 : FBB)).val < (256 : FBB).val
+          simp only [Fin.val_mod, Fin.val_add]
+          norm_num
+          omega
+        · rw [hs1, hs2, h_eq_a, h_eq_b]
       simp [Add8Air_constraint_and_interaction_simplification] at h_cstrs₁ h_cstrs₂
       obtain ⟨ h_bus₁, h0₁, h1₁, h2₁, h3₁, h4₁, h5₁, h6₁, h7₁, h8₁, h9₁, h10₁ ⟩ := h_cstrs₁
       obtain ⟨ h_bus₂, h0₂, h1₂, h2₂, h3₂, h4₂, h5₂, h6₂, h7₂, h8₂, h9₂, h10₂ ⟩ := h_cstrs₂
@@ -454,7 +548,10 @@ lemma allHold_simplified_of_allHold
       apply bit_decomposition (by omega) h3₂ h4₂ h5₂ h6₂ h7₂ h8₂ h9₂ h10₂ at h2₂
       simp_all
 
-    @[simp] lemma mod_2_is_bit (x : FBB) : x % 2 = 0 ∨ x % 2 = 1 := by sorry -- TODO: replace grind
+    @[simp] lemma mod_2_is_bit (x : FBB) : x % 2 = 0 ∨ x % 2 = 1 := by
+      rcases Nat.mod_two_eq_zero_or_one x.val with h | h
+      · left; exact Fin.ext (by simp [Fin.val_mod]; exact h)
+      · right; exact Fin.ext (by simp [Fin.val_mod]; exact h)
 
     lemma bit_recomposition
       {x : FBB}
@@ -463,8 +560,11 @@ lemma allHold_simplified_of_allHold
       x = x % 2 + x / 2 % 2 * 2 + x / 4 % 2 * 4 + x / 8 % 2 * 8 +
           x / 16 % 2 * 16 + x / 32 % 2 * 32 + x / 64 % 2 * 64 + x / 128 % 2 * 128
     := by
-      simp [Fin.ext_iff, Fin.val_add, Fin.val_mul]
-      sorry -- TODO: replace grind
+      refine Fin.ext ?_
+      simp only [Fin.val_add, Fin.val_mul, Fin.val_mod, Fin.div_val]
+      norm_num
+      rw [Nat.mod_eq_of_lt (by omega)]
+      omega
 
     set_option maxHeartbeats 1_000_000_000 in
     theorem spec_completeness
