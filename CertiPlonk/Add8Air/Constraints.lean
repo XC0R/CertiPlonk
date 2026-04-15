@@ -550,8 +550,8 @@ lemma allHold_simplified_of_allHold
 
     @[simp] lemma mod_2_is_bit (x : FBB) : x % 2 = 0 ∨ x % 2 = 1 := by
       rcases Nat.mod_two_eq_zero_or_one x.val with h | h
-      · left; exact Fin.ext (by simp [Fin.val_mod]; exact h)
-      · right; exact Fin.ext (by simp [Fin.val_mod]; exact h)
+      · left; exact Fin.ext (by simp; exact h)
+      · right; exact Fin.ext (by simp; exact h)
 
     lemma bit_recomposition
       {x : FBB}
