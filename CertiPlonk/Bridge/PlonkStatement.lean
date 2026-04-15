@@ -119,4 +119,50 @@ theorem air_implies_plonk
     try (linear_combination is_bool.mpr h10)
   }
 
+@[reducible] def airConstraintsOnWires (w : Fin 28 → FBB) : Prop :=
+  w ⟨0, by omega⟩ + w ⟨1, by omega⟩ - (w ⟨3, by omega⟩ * 256 + w ⟨2, by omega⟩) = 0 ∧
+  w ⟨3, by omega⟩ * w ⟨3, by omega⟩ - w ⟨3, by omega⟩ = 0 ∧
+  w ⟨2, by omega⟩ - (w ⟨4, by omega⟩ + w ⟨5, by omega⟩ * 2 + w ⟨6, by omega⟩ * 4 +
+    w ⟨7, by omega⟩ * 8 + w ⟨8, by omega⟩ * 16 + w ⟨9, by omega⟩ * 32 +
+    w ⟨10, by omega⟩ * 64 + w ⟨11, by omega⟩ * 128) = 0 ∧
+  w ⟨4, by omega⟩ * w ⟨4, by omega⟩ - w ⟨4, by omega⟩ = 0 ∧
+  w ⟨5, by omega⟩ * w ⟨5, by omega⟩ - w ⟨5, by omega⟩ = 0 ∧
+  w ⟨6, by omega⟩ * w ⟨6, by omega⟩ - w ⟨6, by omega⟩ = 0 ∧
+  w ⟨7, by omega⟩ * w ⟨7, by omega⟩ - w ⟨7, by omega⟩ = 0 ∧
+  w ⟨8, by omega⟩ * w ⟨8, by omega⟩ - w ⟨8, by omega⟩ = 0 ∧
+  w ⟨9, by omega⟩ * w ⟨9, by omega⟩ - w ⟨9, by omega⟩ = 0 ∧
+  w ⟨10, by omega⟩ * w ⟨10, by omega⟩ - w ⟨10, by omega⟩ = 0 ∧
+  w ⟨11, by omega⟩ * w ⟨11, by omega⟩ - w ⟨11, by omega⟩ = 0
+
+set_option maxHeartbeats 8000000 in
+theorem plonk_implies_air (w : Fin 28 → FBB) (h : add8airCS.accepts w) :
+    airConstraintsOnWires w := by
+  unfold airConstraintsOnWires
+  have g0 := h ⟨0, by omega⟩; have g1 := h ⟨1, by omega⟩; have g2 := h ⟨2, by omega⟩
+  have g3 := h ⟨3, by omega⟩
+  have g4 := h ⟨4, by omega⟩; have g5 := h ⟨5, by omega⟩; have g6 := h ⟨6, by omega⟩
+  have g7 := h ⟨7, by omega⟩; have g8 := h ⟨8, by omega⟩; have g9 := h ⟨9, by omega⟩
+  have g10 := h ⟨10, by omega⟩
+  have g11 := h ⟨11, by omega⟩; have g12 := h ⟨12, by omega⟩; have g13 := h ⟨13, by omega⟩
+  have g14 := h ⟨14, by omega⟩; have g15 := h ⟨15, by omega⟩; have g16 := h ⟨16, by omega⟩
+  have g17 := h ⟨17, by omega⟩
+  have g18 := h ⟨18, by omega⟩
+  have g19 := h ⟨19, by omega⟩; have g20 := h ⟨20, by omega⟩; have g21 := h ⟨21, by omega⟩
+  have g22 := h ⟨22, by omega⟩; have g23 := h ⟨23, by omega⟩; have g24 := h ⟨24, by omega⟩
+  have g25 := h ⟨25, by omega⟩; have g26 := h ⟨26, by omega⟩
+  simp only [add8airCS, Gate.scalarMul, Gate.wireEq, Gate.add, Gate.bool, Gate.accepts, Gate.eval] at g0 g1 g2 g3 g4 g5 g6 g7 g8 g9 g10 g11 g12 g13 g14 g15 g16 g17 g18 g19 g20 g21 g22 g23 g24 g25 g26
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · linear_combination g1 - g2 - g0
+  · linear_combination g3
+  · linear_combination g18 - g17 - g16 - g15 - g14 - g13 - g12 - g11
+      - g10 - g9 - g8 - g7 - g6 - g5 - g4
+  · linear_combination g19
+  · linear_combination g20
+  · linear_combination g21
+  · linear_combination g22
+  · linear_combination g23
+  · linear_combination g24
+  · linear_combination g25
+  · linear_combination g26
+
 end CertiPlonk.Bridge
