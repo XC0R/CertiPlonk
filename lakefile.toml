@@ -12,17 +12,17 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.28.0"
+rev = "v4.29.0"
 
 [[require]]
 name = "LeanZKCircuit_Plonky3"
 git = "https://github.com/XC0R/LeanZKCircuit-Plonky3"
-rev = "02a993a8c43ffd60206acf43730d86eb05ee909d"
+rev = "5f1eecc"
 
 [[require]]
 name = "Arklib"
 git = "https://github.com/XC0R/ArkLib"
-rev = "plonk-bridge"
+rev = "d2a7cd3d"
 
 [[lean_lib]]
 name = "CertiPlonk"
